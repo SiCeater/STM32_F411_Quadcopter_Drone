@@ -6,16 +6,10 @@ void connection_lost_routine()
 
     // if (debug)
     //     print_to_console("\nremote connection lost !\n", 26);
-
-    // faire des trucs pas en boucle
-
-    // while(telecommande deconnectée)
-    // {
-    //     set_motors(0,0,0,0);
-
-    //     //faire des trucs en boucle
-
-    // }
+    while (missed_transfers>=max_missed_transfers)
+    {
+        ESC_setvalues(0,0,0,0);
+    }
     // onboard_led_on();
-    // print_to_console("\nremote connection etablished !\n", 32);
+    // print_to_console("\nremote connection re-etablished !\n", 35);
 }

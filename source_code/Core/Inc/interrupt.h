@@ -7,6 +7,7 @@
 #include "control.h"
 #include "imu.h"
 #include "debug.h"
+#include "security.h"
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 

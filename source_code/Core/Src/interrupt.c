@@ -2,16 +2,23 @@
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  // if (htim == &htim7) // 400Hz
+  // if (htim == &htimx)// Remplacez htimX par votre handle Timer
   // {
-  //   control();
+  //
   // }
-  // if (htim == &htim6) // 1Hz
-  // {
-  //   // self_test_gyro();
-  //   // self_test_accel();
-  //   IMU_get_datas();
-  //   // IMU_get_datas_DMA();
-  //   print_imu_datas();
-  // }
+  if (htim == &htim10) // securité en cas de deconnection de la telecommande
+  {
+    missed_transfers++;
+    if (missed_transfers > max_missed_transfers) {
+      connection_lost_routine();
+    }
+  }
 }
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart == &huart1) { // si on recoit on remet le compteur a 0
+        __HAL_TIM_SET_COUNTER(&htim10, 0); // Remet le compteur du Timer à 0
+        missed_transfers = 0;            // Remet le compteur de manquements à 0
+    }
+}
+

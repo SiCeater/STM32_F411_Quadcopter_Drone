@@ -2,7 +2,7 @@
 
 void start_remote_routine()
 {
-  // demarrer le dma UART1_RX->MEM ici 
+  HAL_UART_Receive_DMA(&huart1, transmit, 7);
 }
 
 /**

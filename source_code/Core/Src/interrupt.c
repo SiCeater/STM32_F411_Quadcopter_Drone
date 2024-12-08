@@ -2,10 +2,10 @@
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  // if (htim == &htimx)// Remplacez htimX par votre handle Timer
-  // {
-  //
-  // }
+  if (htim == &htim1)// Remplacez htimX par votre handle Timer
+  {
+    control();
+  }
   if (htim == &htim10) // securité en cas de deconnection de la telecommande
   {
     missed_transfers++;

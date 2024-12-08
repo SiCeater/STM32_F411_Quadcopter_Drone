@@ -26,7 +26,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "motors.h"
+#include "control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -96,7 +97,8 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM10_Init();
   /* USER CODE BEGIN 2 */
-
+  ESC_init();
+  start_contol_loop();
   /* USER CODE END 2 */
 
   /* Infinite loop */

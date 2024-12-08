@@ -6,9 +6,9 @@
  */
 void start_control_loop()
 {
-    // HAL_TIM_Base_Start_IT(&htim7); // 400Hz loop
-    // if (debug)
-    //     print_to_console("\ncontrol loop          : started", 32);
+    HAL_TIM_Base_Start_IT(&htim1); // 400Hz loop
+    if (debug)
+        print_to_console("\ncontrol loop          : started", 32);
 }
 
 /**

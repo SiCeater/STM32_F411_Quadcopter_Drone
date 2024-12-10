@@ -7,15 +7,25 @@
  */
 void ESC_init()
 {
-    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
-    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
-    htim1.Instance->CNT = 0;
-    TIM1->CCR1 = 500;
-    TIM1->CCR2 = 500;
-    TIM1->CCR3 = 500;
-    TIM1->CCR4 = 500;
+    // Activer les sorties PWM des canaux du Timer 1
+    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1);
+    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2);
+    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3);
+    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH4);
+
+    // Démarrer le compteur du Timer 1
+    LL_TIM_EnableCounter(TIM1);
+
+    // Remettre le compteur du Timer 1 à 0
+    LL_TIM_SetCounter(TIM1, 0);
+
+    // Configurer les rapports cycliques initiaux des canaux (1ms = 500)
+    LL_TIM_OC_SetCompareCH1(TIM1, 500);
+    LL_TIM_OC_SetCompareCH2(TIM1, 500);
+    LL_TIM_OC_SetCompareCH3(TIM1, 500);
+    LL_TIM_OC_SetCompareCH4(TIM1, 500);
+
+    // Debug optionnel
     if (debug)
     {
         print_to_console("\nESC 1                 : initialized", 36);
@@ -35,8 +45,8 @@ void ESC_init()
  */
 void ESC_setvalues(uint16_t top_left_motor, uint16_t top_right_motor, uint16_t bottom_left_motor, uint16_t bottom_right_motor)
 {
-    TIM1->CCR1 = 500 + top_left_motor;
-    TIM1->CCR2 = 500 + top_right_motor;
-    TIM1->CCR3 = 500 + bottom_left_motor;
-    TIM1->CCR4 = 500 + bottom_right_motor;
+    LL_TIM_OC_SetCompareCH1(TIM1, 500 + top_left_motor);
+    LL_TIM_OC_SetCompareCH2(TIM1, 500 + top_right_motor);
+    LL_TIM_OC_SetCompareCH3(TIM1, 500 + bottom_left_motor);
+    LL_TIM_OC_SetCompareCH4(TIM1, 500 + bottom_right_motor);
 }

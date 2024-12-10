@@ -2,15 +2,18 @@
 
 void onboard_led_on()
 {
-    HAL_GPIO_WritePin(onboard_led_GPIO_Port, onboard_led_Pin, GPIO_PIN_RESET); // reset = allumage de la led sur PA1
+    // Écrire un RESET (0) pour allumer la LED
+    LL_GPIO_ResetOutputPin(onboard_led_GPIO_Port, onboard_led_Pin);
 }
 
 void onboard_led_off()
 {
-    HAL_GPIO_WritePin(onboard_led_GPIO_Port, onboard_led_Pin, GPIO_PIN_SET); // set = on etteint la led sur PA1
+    // Écrire un SET (1) pour éteindre la LED
+    LL_GPIO_SetOutputPin(onboard_led_GPIO_Port, onboard_led_Pin);
 }
 
 void onboard_led_toggle()
 {
-    HAL_GPIO_TogglePin(onboard_led_GPIO_Port, onboard_led_Pin);
+    // Basculer l'état actuel de la broche (SET <-> RESET)
+    LL_GPIO_TogglePin(onboard_led_GPIO_Port, onboard_led_Pin);
 }

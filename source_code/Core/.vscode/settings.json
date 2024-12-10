@@ -1,0 +1,5 @@
+{
+    "files.associations": {
+        "onboard_led.h": "c"
+    }
+}

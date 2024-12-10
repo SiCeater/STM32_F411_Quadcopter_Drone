@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
 extern uint8_t transmit[7];
 extern uint8_t trame_decodee[6];

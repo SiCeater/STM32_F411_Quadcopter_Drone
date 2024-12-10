@@ -9,6 +9,8 @@
 #include "debug.h"
 #include "security.h"
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
+void TIM1_UP_TIM10_IRQHandler(void);
+void USART1_IRQHandler(void);
+void DMA2_Stream2_IRQHandler(void);
 
 #endif

@@ -6,7 +6,8 @@
  */
 void start_control_loop()
 {
-    HAL_TIM_Base_Start_IT(&htim1); // 400Hz loop
+    LL_TIM_EnableIT_UPDATE(TIM1); // 400Hz loop
+    LL_TIM_EnableCounter(TIM1);
     if (debug)
         print_to_console("\ncontrol loop          : started", 32);
 }

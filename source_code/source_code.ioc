@@ -1,6 +1,6 @@
 #MicroXplorer Configuration settings - do not modify
-CAD.formats=
-CAD.pinconfig=
+CAD.formats=[]
+CAD.pinconfig=Dual
 CAD.provider=
 Dma.Request0=USART1_RX
 Dma.RequestsNb=1

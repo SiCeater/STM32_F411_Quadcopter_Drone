@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "onboard_led.h": "c",
+        "stm32f4xx_ll_gpio.h": "c",
+        "stm32f4xx.h": "c",
+        "stm32f4xx_hal.h": "c",
+        "stm32_assert.h": "c",
+        "stm32f4xx_ll_adc.h": "c",
+        "stm32f4xx_ll_bus.h": "c",
+        "stm32f4xx_ll_rcc.h": "c",
+        "stm32f4xx_ll_pwr.h": "c",
+        "stm32f4xx_ll_cortex.h": "c",
+        "stm32f4xx_ll_spi.h": "c",
+        "stm32f4xx_ll_tim.h": "c",
+        "global.h": "c"
+    }
+}

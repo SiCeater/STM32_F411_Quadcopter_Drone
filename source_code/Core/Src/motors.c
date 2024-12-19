@@ -7,23 +7,27 @@
  */
 void ESC_init()
 {
-    // Activer les sorties PWM des canaux du Timer 1
-    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1);
-    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2);
-    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3);
-    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH4);
-
-    // Démarrer le compteur du Timer 1
-    LL_TIM_EnableCounter(TIM1);
-
-    // Remettre le compteur du Timer 1 à 0
-    LL_TIM_SetCounter(TIM1, 0);
-
     // Configurer les rapports cycliques initiaux des canaux (1ms = 500)
     LL_TIM_OC_SetCompareCH1(TIM1, 500);
     LL_TIM_OC_SetCompareCH2(TIM1, 500);
     LL_TIM_OC_SetCompareCH3(TIM1, 500);
     LL_TIM_OC_SetCompareCH4(TIM1, 500);
+
+    LL_TIM_EnableAllOutputs(TIM1);
+
+    // Démarrer le compteur du Timer 1
+    LL_TIM_EnableCounter(TIM1);
+    
+    // Remettre le compteur du Timer 1 à 0
+    LL_TIM_SetCounter(TIM1, 0);
+
+    LL_TIM_EnableAllOutputs(TIM1);
+    
+    // Activer les sorties PWM des canaux du Timer 1
+    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1);
+    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2);
+    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3);
+    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH4);
 
     // Debug optionnel
     if (debug)

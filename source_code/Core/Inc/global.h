@@ -22,8 +22,10 @@ extern bool DMA_transfer_flag;
 extern int16_t AccData[3];
 extern int16_t MagData[3];
 extern int16_t GyroData[3];
-extern volatile uint8_t missed_transfers;
+extern uint8_t missed_transfers;
 extern uint8_t max_missed_transfers;
+extern bool debug_var;
+extern uint16_t debug_count;
 
 #endif
     

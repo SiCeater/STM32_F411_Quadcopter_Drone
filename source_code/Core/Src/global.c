@@ -15,5 +15,7 @@ bool DMA_transfer_flag = 0;
 int16_t AccData[3] = {0};
 int16_t MagData[3] = {0};
 int16_t GyroData[3] = {0};
-volatile uint8_t missed_transfers;
+uint8_t missed_transfers;
 uint8_t max_missed_transfers=10;
+bool debug_var=false;
+uint16_t debug_count=0;

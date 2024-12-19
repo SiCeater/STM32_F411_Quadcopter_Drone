@@ -12,6 +12,9 @@
         "stm32f4xx_ll_cortex.h": "c",
         "stm32f4xx_ll_spi.h": "c",
         "stm32f4xx_ll_tim.h": "c",
-        "global.h": "c"
+        "global.h": "c",
+        "gpio.h": "c",
+        "main.h": "c",
+        "stm32f4xx_ll_usart.h": "c"
     }
 }

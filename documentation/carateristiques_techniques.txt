@@ -1,0 +1,86 @@
+Fréquence de communication télécommande :
+Performance accrue (FPV/réactivité) : 100 Hz à 250 Hz si votre module RF et microcontrôleur le permettent.
+
+Nombre de bits par octet dans une transmission UART :
+Chaque octet comprend :
+8 bits de données.
+1 bit de start.
+1 bit de stop (standard pour la plupart des UARTs).
+Total : 10 bits par octet.
+Total de bits transmis par seconde :
+6 octets × 10 bits/octet × 250 Hz = 15,000 bits par seconde (bps).
+Débit en bauds :
+Pour l’UART, les bauds sont équivalents au bps.
+Vous avez donc besoin d’un débit minimum de 15,000 bauds.
+
+Nombre de bits par octet dans une transmission UART :
+Chaque octet comprend :
+8 bits de données.
+1 bit de start.
+1 bit de stop.
+Total : 10 bits par octet.
+Total de bits transmis par seconde :
+6 octets × 10 bits/octet × 100 Hz = 6,000 bits par seconde (bps).
+Débit en bauds :
+Pour l’UART, les bauds sont équivalents au bps.
+Vous avez donc besoin d’un débit minimum de 6,000 bauds.
+
+Comparaison des modules à grande portée :
+
+Module			Portée (km)	Débit max (bps)		UART Transparent	Prix (€)
+E32-TTL-433		5-10		19,200			Oui			10-20
+HM-TRP			1-2		19,200			Oui			10-15
+HopeRF RFM96W		10-15		37,500			Oui (avec adaptateur)	10-20
+XBee Pro 868/433	3-5		250,000			Oui			40-70
+
+Facteurs spécifiques à un F330 :
+
+1 - Taille et réactivité :
+Le F330, avec des hélices de 6" à 8", est conçu pour être agile et réactif.
+Cela permet d’exploiter des fréquences PID élevées sans trop d’oscillations dues à l'inertie.
+
+2 - Protocole ESC :
+- PWM classique : Limite à ~490 Hz.
+- OneShot125/OneShot42 : Fréquences PID entre 250 Hz et 500 Hz recommandées.
+- DShot300/DShot600 : Fréquences PID entre 500 Hz et 1 kHz possibles.
+
+Fréquences typiques selon les protocoles ESC :
+
+Protocole ESC		Fréquence PID recommandée	Fréquence d'actualisation ESC
+PWM classique		50-200 Hz			~490 Hz
+OneShot125		250-500 Hz			~8 kHz
+OneShot42		500 Hz - 1 kHz			~24 kHz
+DShot150/DShot300	500 Hz - 1 kHz			150 kHz - 300 kHz
+DShot600		1 kHz - 2 kHz			600 kHz
+
+Dimentionnement des ESC :
+Durées des impulsions pour OneShot :
+
+OneShot125, Durée des impulsions :
+125 µs → Minimum (commande à 0 % de puissance).
+250 µs → Maximum (commande à 100 % de puissance).
+Fréquence maximale : 8 kHz (1/125 µs).
+
+OneShot42 :
+Durée des impulsions :
+42 µs → Minimum (commande à 0 % de puissance).
+84 µs → Maximum (commande à 100 % de puissance).
+Fréquence maximale : 24 kHz (1/42 µs).
+
+Différences entre OneShot et PWM classique :
+
+Caractéristique			PWM Classique		OneShot125	OneShot42
+Durée des impulsions		1000-2000 µs		125-250 µs	42-84 µs
+Fréquence maximale		~490 Hz			~8 kHz		~24 kHz
+Latence				Plus élevée		Réduite		Très faible
+Synchronisation PID loop	Non synchronisé		Oui		Oui
+
+3 - Capteurs gyroscope et accéléromètre :
+- Le gyroscope doit être configuré à une fréquence d’échantillonnage d’au moins 2 kHz.
+- Utilisez des filtres (low-pass) pour limiter le bruit si la fréquence PID dépasse 500 Hz.
+
+4 - Puissance du FC :
+- Un STM32F4 (comme un F411 ou F405) peut gérer confortablement des fréquences PID jusqu'à 1 kHz.
+
+
+

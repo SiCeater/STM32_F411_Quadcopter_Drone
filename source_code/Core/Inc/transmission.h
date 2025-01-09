@@ -8,7 +8,7 @@
 
 void start_remote_routine();
 void decode_trame();
-void UART_Receive_DMA(USART_TypeDef *USARTx, uint8_t *buffer, uint16_t size);
+void UART_Receive_DMA(uint8_t *buffer, uint16_t size);
 
 #endif
 

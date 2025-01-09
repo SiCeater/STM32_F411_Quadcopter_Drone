@@ -210,19 +210,24 @@ void TIM1_UP_TIM10_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM1_UP_TIM10_IRQn 0 */
   // Vérifiez la source de l'interruption
-    if (LL_TIM_IsActiveFlag_UPDATE(TIM1))
+    if (LL_TIM_IsActiveFlag_UPDATE(TIM1)) // timer de la boucle de controle
     {
+      if(debug)
+        print_to_console("\n_T1\n", 5);
+
       LL_TIM_ClearFlag_UPDATE(TIM1); // Nettoyer le flag
       control();
     }
-    if (LL_TIM_IsActiveFlag_UPDATE(TIM10))
+    if (LL_TIM_IsActiveFlag_UPDATE(TIM10)) // timer de la fonction de securité
     {
+      if(debug)
+        print_to_console("\n_T10\n", 6);
+
       LL_TIM_ClearFlag_UPDATE(TIM10); // Nettoyez le flag d'interruption de TIM10
       missed_transfers++;
-      if (missed_transfers > max_missed_transfers) {
+      if (missed_transfers >= max_missed_transfers) {
         connection_lost_routine();
       }
-      // Code pour gérer la fin de la période de TIM10
     }
   /* USER CODE END TIM1_UP_TIM10_IRQn 0 */
   /* USER CODE BEGIN TIM1_UP_TIM10_IRQn 1 */
@@ -236,19 +241,14 @@ void TIM1_UP_TIM10_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-  // Vérifiez si l'interruption provient de la réception d'un caractère (RXNE flag)
-    if (LL_USART_IsActiveFlag_RXNE(USART1))
+    if (LL_USART_IsActiveFlag_IDLE(USART1)) // Vérifiez si l'interruption provient de la fin de transmission d'une trame d'octets (IDLE flag)
     {
-        // Lire le caractère reçu pour vider le flag RXNE
-        //uint8_t received_data = LL_USART_ReceiveData8(USART1); peut etre que cette ligne vide le buffer avant que le DMA le fasse
+      if(debug)
+        print_to_console("\n_U1\n", 5);
 
-        // Remettre le compteur du Timer à 0
-        LL_TIM_SetCounter(TIM10, 0);
-
-        // Remettre à zéro le compteur de manquements
-        missed_transfers = 0;
-
-        // (Optionnel) Ajouter ici un traitement pour `received_data` si nécessaire
+      LL_USART_ClearFlag_IDLE(USART1); // Efface le drapeau IDLE
+      missed_transfers = 0; // Remettre à zéro le compteur de manquements
+      LL_TIM_SetCounter(TIM10, 0); // Remettre le compteur du Timer à 0
     }
   /* USER CODE END USART1_IRQn 0 */
   /* USER CODE BEGIN USART1_IRQn 1 */

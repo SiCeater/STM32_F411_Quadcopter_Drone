@@ -126,7 +126,7 @@ void MX_TIM10_Init(void)
   /* USER CODE END TIM10_Init 1 */
   TIM_InitStruct.Prescaler = 99;
   TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
-  TIM_InitStruct.Autoreload = 999;
+  TIM_InitStruct.Autoreload = 9999;
   TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
   LL_TIM_Init(TIM10, &TIM_InitStruct);
   LL_TIM_DisableARRPreload(TIM10);

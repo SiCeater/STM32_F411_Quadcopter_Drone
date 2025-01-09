@@ -20,7 +20,7 @@ void UART_Transmit_LL(USART_TypeDef *USARTx, uint8_t *data, uint16_t size)
 void print_received_data()
 {
   char tab_uart_debug[50] = {0};
-  sprintf(tab_uart_debug, "\nX_D:%3d Y_D:%3d X_G:%3d Y_G:%3d B_D:%d B_G:%d", trame_decodee[0], trame_decodee[1], trame_decodee[2], trame_decodee[3], trame_decodee[4], trame_decodee[5]);
+  sprintf(tab_uart_debug, "\nY_D:%3d X_D:%3d Y_G:%3d X_G:%3d B_D:%d B_G:%d", trame_decodee[0], trame_decodee[1], trame_decodee[2], trame_decodee[3], trame_decodee[4], trame_decodee[5]);
   UART_Transmit_LL(USART2, (uint8_t *)tab_uart_debug, 44);
 }
 

@@ -74,13 +74,13 @@
 #define BNO080_PS0_WAKE_PORT	GPIOA
 #define BNO080_PS0_WAKE_CLK		LL_AHB1_GRP1_PERIPH_GPIOA
 
-#define BNO080_RST_PIN			  LL_GPIO_PIN_9
-#define BNO080_RST_PORT			  GPIOC
-#define BNO080_RST_CLK			  LL_AHB1_GRP1_PERIPH_GPIOC
+#define BNO080_RST_PIN			  LL_GPIO_PIN_0
+#define BNO080_RST_PORT			  GPIOB
+#define BNO080_RST_CLK			  LL_AHB1_GRP1_PERIPH_GPIOB
 
-#define BNO080_INT_PIN			  LL_GPIO_PIN_8
-#define BNO080_INT_PORT			  GPIOC
-#define BNO080_INT_CLK			  LL_AHB1_GRP1_PERIPH_GPIOC
+#define BNO080_INT_PIN			  LL_GPIO_PIN_1
+#define BNO080_INT_PORT			  GPIOB
+#define BNO080_INT_CLK			  LL_AHB1_GRP1_PERIPH_GPIOB
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////

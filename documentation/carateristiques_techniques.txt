@@ -84,3 +84,7 @@ Synchronisation PID loop	Non synchronisé		Oui		Oui
 
 
 
+
+Notice driver IMU
+ 
+

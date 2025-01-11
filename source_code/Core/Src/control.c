@@ -6,7 +6,7 @@
  */
 void start_control_loop()
 {
-    LL_TIM_EnableIT_UPDATE(TIM1);   // 400Hz control loop
+    LL_TIM_EnableIT_UPDATE(TIM1);   // 400Hz control loop qui est calee sur le timer 1 (surement à modifier)
     LL_TIM_EnableCounter(TIM1);
     if (debug)
         print_to_console("\ncontrol loop          : started", 32);
@@ -24,9 +24,9 @@ void control()
     {
         value = trame_decodee[0];
         value = value - 100;
-        value = value * 5;
-        if(value>=500)
-            value=500;
+        value = value * 2; // max 5 mais dangereux
+        if(value>=200)
+            value=200; // max 500
     }
     ESC_setvalues(value,value,value,value);
 }

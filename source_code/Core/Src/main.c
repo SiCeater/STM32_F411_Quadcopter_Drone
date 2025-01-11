@@ -29,6 +29,7 @@
 #include "motors.h"
 #include "control.h"
 #include "onboard_led.h"
+#include "imu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -71,7 +72,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-  debug = false;
+  debug = true;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -108,9 +109,10 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   ESC_init();
-  LL_mDelay(500);
-  start_remote_routine();
-  start_control_loop();
+  BNO080_Initialization();
+  // LL_mDelay(500);
+  // start_remote_routine();
+  // start_control_loop();
  
   /* USER CODE END 2 */
 

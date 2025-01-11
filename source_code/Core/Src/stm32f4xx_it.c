@@ -24,7 +24,6 @@
 /* USER CODE BEGIN Includes */
 #include "global.h"
 #include "control.h"
-#include "imu.h"
 #include "debug.h"
 #include "security.h"
 /* USER CODE END Includes */

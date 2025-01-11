@@ -10,7 +10,7 @@
 extern uint8_t transmit[7];
 extern uint8_t trame_decodee[6];
 extern bool connected_flag;
-extern bool debug;
+extern uint8_t debug;
 extern bool remote_already_seen;
 extern uint16_t top_left_motor;
 extern uint16_t top_right_motor;
@@ -24,7 +24,6 @@ extern int16_t MagData[3];
 extern int16_t GyroData[3];
 extern uint8_t missed_transfers;
 extern uint8_t max_missed_transfers;
-extern bool debug_var;
 extern uint16_t debug_count;
 
 #endif

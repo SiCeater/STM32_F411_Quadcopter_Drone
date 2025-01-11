@@ -75,6 +75,12 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define onboard_led_Pin LL_GPIO_PIN_13
 #define onboard_led_GPIO_Port GPIOC
+#define SPI1_CS_Pin LL_GPIO_PIN_4
+#define SPI1_CS_GPIO_Port GPIOA
+#define SPI1_RST_Pin LL_GPIO_PIN_0
+#define SPI1_RST_GPIO_Port GPIOB
+#define SPI1_INT_Pin LL_GPIO_PIN_1
+#define SPI1_INT_GPIO_Port GPIOB
 #ifndef NVIC_PRIORITYGROUP_0
 #define NVIC_PRIORITYGROUP_0         ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority,
                                                                  4 bits for subpriority */

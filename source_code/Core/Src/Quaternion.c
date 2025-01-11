@@ -1,4 +1,4 @@
-#include "Quaternion.h"
+#include "quaternion.h"
 
 #define _180_DIV_PI 57.295779515f // = 180 / PI
 

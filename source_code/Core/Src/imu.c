@@ -47,6 +47,8 @@
 #include "debug.h"
 #include "global.h"
 #include <math.h>
+#include "stdint.h"
+#include "stdio.h"
 
 
 //Global Variables
@@ -839,7 +841,8 @@ void BNO080_sendCommand(uint8_t command)
 	shtpData[2] = command;					   //Command
 
 	//Caller must set these
-	/*shtpData[3] = 0; //P0
+	/*
+	shtpData[3] = 0; //P0
 	shtpData[4] = 0; //P1
 	shtpData[5] = 0; //P2
 	shtpData[6] = 0;
@@ -847,7 +850,8 @@ void BNO080_sendCommand(uint8_t command)
 	shtpData[8] = 0;
 	shtpData[9] = 0;
 	shtpData[10] = 0;
-	shtpData[11] = 0;*/
+	shtpData[11] = 0;
+	*/
 
 	//Transmit packet on channel 2, 12 bytes
 	BNO080_sendPacket(CHANNEL_CONTROL, 12);
@@ -857,7 +861,8 @@ void BNO080_sendCommand(uint8_t command)
 //See page 50 of reference manual and the 1000-4044 calibration doc
 void BNO080_sendCalibrateCommand(uint8_t thingToCalibrate)
 {
-	/*shtpData[3] = 0; //P0 - Accel Cal Enable
+	/*
+	shtpData[3] = 0; //P0 - Accel Cal Enable
 	shtpData[4] = 0; //P1 - Gyro Cal Enable
 	shtpData[5] = 0; //P2 - Mag Cal Enable
 	shtpData[6] = 0; //P3 - Subcommand 0x00
@@ -865,7 +870,8 @@ void BNO080_sendCalibrateCommand(uint8_t thingToCalibrate)
 	shtpData[8] = 0; //P5 - Reserved
 	shtpData[9] = 0; //P6 - Reserved
 	shtpData[10] = 0; //P7 - Reserved
-	shtpData[11] = 0; //P8 - Reserved*/
+	shtpData[11] = 0; //P8 - Reserved
+	*/
 
 	for (uint8_t x = 3; x < 12; x++) //Clear this section of the shtpData array
 		shtpData[x] = 0;
@@ -898,7 +904,8 @@ void BNO080_sendCalibrateCommand(uint8_t thingToCalibrate)
 //See page 51 of reference manual
 void BNO080_requestCalibrationStatus()
 {
-	/*shtpData[3] = 0; //P0 - Reserved
+	/*
+	shtpData[3] = 0; //P0 - Reserved
 	shtpData[4] = 0; //P1 - Reserved
 	shtpData[5] = 0; //P2 - Reserved
 	shtpData[6] = 0; //P3 - 0x01 - Subcommand: Get ME Calibration
@@ -906,7 +913,8 @@ void BNO080_requestCalibrationStatus()
 	shtpData[8] = 0; //P5 - Reserved
 	shtpData[9] = 0; //P6 - Reserved
 	shtpData[10] = 0; //P7 - Reserved
-	shtpData[11] = 0; //P8 - Reserved*/
+	shtpData[11] = 0; //P8 - Reserved
+	*/
 
 	for (uint8_t x = 3; x < 12; x++) //Clear this section of the shtpData array
 		shtpData[x] = 0;
@@ -921,7 +929,8 @@ void BNO080_requestCalibrationStatus()
 //See page 49 of reference manual and the 1000-4044 calibration doc
 void BNO080_saveCalibration()
 {
-	/*shtpData[3] = 0; //P0 - Reserved
+	/*
+	shtpData[3] = 0; //P0 - Reserved
 	shtpData[4] = 0; //P1 - Reserved
 	shtpData[5] = 0; //P2 - Reserved
 	shtpData[6] = 0; //P3 - Reserved
@@ -929,7 +938,8 @@ void BNO080_saveCalibration()
 	shtpData[8] = 0; //P5 - Reserved
 	shtpData[9] = 0; //P6 - Reserved
 	shtpData[10] = 0; //P7 - Reserved
-	shtpData[11] = 0; //P8 - Reserved*/
+	shtpData[11] = 0; //P8 - Reserved
+	*/
 
 	for (uint8_t x = 3; x < 12; x++) //Clear this section of the shtpData array
 		shtpData[x] = 0;
@@ -1069,6 +1079,127 @@ int BNO080_sendPacket(uint8_t channelNumber, uint8_t dataLength)
 	CHIP_DESELECT(BNO080);
 
 	return (1);
+}
+
+
+void BNO080_Calibration(void)
+{
+	char debug_buffer[100];
+	//Resets BNO080 to disable All output
+	BNO080_Initialization();
+
+	//BNO080/BNO085 Configuration
+	//Enable dynamic calibration for accelerometer, gyroscope, and magnetometer
+	//Enable Game Rotation Vector output
+	//Enable Magnetic Field output
+	BNO080_calibrateAll(); //Turn on cal for Accel, Gyro, and Mag
+	BNO080_enableGameRotationVector(20000); //Send data update every 20ms (50Hz)
+	BNO080_enableMagnetometer(20000); //Send data update every 20ms (50Hz)
+
+	//Once magnetic field is 2 or 3, run the Save DCD Now command
+	if (debug)
+	{
+		print_to_console("Calibrating BNO080. Calibration and save to memory\n",strlen("Calibrating BNO080. Calibration and save to memory\n"));
+		print_to_console("Output in form x, y, z, in uTesla\n",strlen("Output in form x, y, z, in uTesla\n"));
+	}
+	
+	float x = 0;
+	float y = 0;
+	float z = 0;
+	unsigned char accuracy = 0;
+	float quatI = 0;
+	float quatJ = 0;
+	float quatK = 0;
+	float quatReal = 0;
+	unsigned char sensorAccuracy = 0;
+
+	uint8_t cpt = 0;
+
+	while((accuracy!=3)||(sensorAccuracy!=3))
+	{
+		if(BNO080_dataAvailable() == 1)
+		{
+			//Observing the status bit of the magnetic field output
+			x = BNO080_getMagX();
+			y = BNO080_getMagY();
+			z = BNO080_getMagZ();
+			accuracy = BNO080_getMagAccuracy();
+
+			quatI = BNO080_getQuatI();
+			quatJ = BNO080_getQuatJ();
+			quatK = BNO080_getQuatK();
+			quatReal = BNO080_getQuatReal();
+			sensorAccuracy = BNO080_getQuatAccuracy();
+
+			if (debug)
+			{
+				sprintf(debug_buffer,"%f,%f,%f,\t", x, y, z);
+				print_to_console(debug_buffer,strlen(debug_buffer));
+			
+
+				if (accuracy == 0)
+					print_to_console("Unreliable\n",strlen("Unreliable\n"));
+				else if (accuracy == 1)
+					print_to_console("Low\n",strlen("Low\n"));
+				else if (accuracy == 2)
+					print_to_console("Medium\n",strlen("Medium\n"));
+				else if (accuracy == 3)
+					print_to_console("High\n",strlen("High\n"));
+				
+				sprintf(debug_buffer,"%f,%f,%f,%f,\t", quatI, quatJ, quatK, quatReal);
+				print_to_console(debug_buffer,strlen(debug_buffer));
+
+				if (sensorAccuracy == 0)
+						print_to_console("Unreliable\n",strlen("Unreliable\n"));
+				else if (sensorAccuracy == 1)
+						print_to_console("Low\n",strlen("Low\n"));
+				else if (sensorAccuracy == 2)
+						print_to_console("Medium\n",strlen("Medium\n"));
+				else if (sensorAccuracy == 3)
+						print_to_console("High\n",strlen("High\n"));
+			}
+		}
+		LL_mDelay(100);
+		cpt++;
+		if(cpt>=100)
+			break;
+	}
+
+	BNO080_saveCalibration();
+	BNO080_requestCalibrationStatus();
+
+	//Wait for calibration response, timeout if no response
+	int counter = 100;
+	while(1)
+	{
+		if(--counter == 0) break;
+		if(BNO080_dataAvailable())
+		{
+			//The IMU can report many different things. We must wait
+			//for the ME Calibration Response Status byte to go to zero
+			if(BNO080_calibrationComplete() == 1)
+			{
+				if(debug)
+					print_to_console("\nCalibration data successfully stored\n",strlen("\nCalibration data successfully stored\n"));
+				break;
+			}
+		}
+		LL_mDelay(10);
+	}
+	if(counter == 0)
+	{
+		if(debug)
+			print_to_console("\nCalibration data failed to store. Please try again.\n",strlen("\nCalibration data failed to store. Please try again.\n"));
+	}
+
+	//BNO080_endCalibration(); //Turns off all calibration
+	//In general, calibration should be left on at all times. The BNO080
+	//auto-calibrates and auto-records cal data roughly every 5 minutes
+	
+	//Resets BNO080 to disable Game Rotation Vector and Magnetometer
+	//Enables Rotation Vector
+	BNO080_Initialization(); 
+	BNO080_enableRotationVector(2500); //Send data update every 2.5ms (400Hz)
 }
 ///////////////////////////////////////////////////////////////////////////
 

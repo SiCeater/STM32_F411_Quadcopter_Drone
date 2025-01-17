@@ -231,5 +231,6 @@ void BNO080_saveCalibration();
 int BNO080_waitForSPI(void);
 int BNO080_receivePacket(void);
 int BNO080_sendPacket(uint8_t channelNumber, uint8_t dataLength);
+void BNO080_Calibration(void);
 
 #endif

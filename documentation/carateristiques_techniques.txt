@@ -83,8 +83,6 @@ Synchronisation PID loop	Non synchronisé		Oui		Oui
 - Un STM32F4 (comme un F411 ou F405) peut gérer confortablement des fréquences PID jusqu'à 1 kHz.
 
 
-
-
-Notice driver IMU
+BNO085
+Max speed SPI bus = 3Mhz (figure 6)
  
-

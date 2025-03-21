@@ -85,4 +85,113 @@ Synchronisation PID loop	Non synchronisé		Oui		Oui
 
 BNO085
 Max speed SPI bus = 3Mhz (figure 6)
+
+Rotation Vector (ID : 0x28)
+Description : Fournit les angles d'orientation complets (Roll, Pitch, Yaw) en fusionnant les données du gyroscope, de l'accéléromètre et du magnétomètre.
+Taux maximal : 400 Hz.
+Avantages :
+Offre une orientation stabilisée en référence à la gravité (Roll et Pitch) et au Nord magnétique (Yaw).
+Permet une gestion précise des angles pour la boucle externe PID (contrôle de l’attitude globale).
+Latence typique : 3.7 ms à 400 Hztion Vector (ID : 0x2A)**
+
+Gyro-Integrated Rotation Vector (Report ID: 0x2A)
+Description : Fournit une orientation calculée à partir des données du gyroscope uniquement, avec une correction périodique basée sur un vecteur de référence plus précis (typiquement le Rotation Vector).
+Taux maximal : 1 kHz.
+Avantages :
+Idéal pour une boucle interne PID (stabilisation rapide en vitesse angulaire).
+Très faible latence et haute fréquence, cruciales pour les corrections rapides.
+Données incluses :
+Quaternion (orientation).
+Vitesses angulaires (
+ω
+x
+,
+ω
+y
+,
+ω
+z
+ω 
+x
+​	
+ ,ω 
+y
+​	
+ ,ω 
+z
+​	
+ ) pour les corrections directes .
+CorrélaD + Kalman
+1. Boucle interne PID (1 kHz)
+
+Nécessite des vitesses angulaires (
+ω
+x
+,
+ω
+y
+,
+ω
+z
+ω 
+x
+​	
+ ,ω 
+y
+​	
+ ,ω 
+z
+​	
+ ) à haute fréquence.
+Ces données sont directement disponibles dans le Gyro Rotation Vector, ce qui rend ce capteur essentiel pour cette partie de l'algorithme.
+2. Boucle externe PID (400 Hz)
+
+Nécessite des angles globaux (Roll, Pitch, Yaw) pour stabiliser l’attitude générale.
+Le Rotation Vector fournit ces données directement à 400 Hz.
+3. Filtre de Kalman
+
+Combine les données haute fréquence (
+ω
+x
+,
+ω
+y
+,
+ω
+z
+ω 
+x
+​	
+ ,ω 
+y
+​	
+ ,ω 
+z
+​	
+ ) du Gyro Rotation Vector avec les angles à fréquence plus basse (Roll, Pitch, Yaw) du Rotation Vector.
+Kalman corrige les biais et fusionne les informations pour obtenir une orientation plus précise.
+Conclusion
+Oui, les deux données suivantes suffisent pour mettre en œuvre ton algorithme PID + Kalman :
+
+Rotation Vector (400 Hz) : Pour les angles globaux (Roll, Pitch, Yaw).
+Gyro Rotation Vector (1 kHz) : Pour les vitesses angulaires (
+ω
+x
+,
+ω
+y
+,
+ω
+z
+ω 
+x
+​	
+ ,ω 
+y
+​	
+ ,ω 
+z
+​	
+ ) et les corrections rapides.
+Ces deux sorties couvrent les besoins de la stabilisation et du contrôle précis pour un drone comme le F330.
  

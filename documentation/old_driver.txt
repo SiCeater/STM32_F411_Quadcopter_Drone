@@ -1,0 +1,323 @@
+#include "imu.h"
+
+uint8_t shtpData[MAX_PACKET_SIZE]; // shtpData array, BNO085 can respond with upto 270 bytes, avoid overflow
+int16_t receivedDataLength;
+uint8_t shtpHeader [4];
+
+void IMU_SPIBus_init(void)
+{
+	LL_SPI_Enable(BNO085_SPI_CHANNEL); // on active le SPI
+	CHIP_DESELECT(BNO085); // on force la desactivation de la communication
+	RESET_HIGH(); // on desactive le reset
+}
+
+uint8_t BNO085_SPI_bus_read_write_8(uint8_t data)
+{
+	while(LL_SPI_IsActiveFlag_TXE(BNO085_SPI_CHANNEL)==RESET);
+	LL_SPI_TransmitData8(BNO085_SPI_CHANNEL, data);
+	
+	while(LL_SPI_IsActiveFlag_RXNE(BNO085_SPI_CHANNEL)==RESET);
+	return LL_SPI_ReceiveData8(BNO085_SPI_CHANNEL);
+}
+
+//Blocking wait for BNO085 to assert (pull low) the INT pin
+//indicating it's ready for comm. Can take more than 104ms after a hardware reset
+uint8_t BNO085_wait_response(void)
+{
+	char buffer_debug[100];
+	for (uint32_t counter = 0; counter < 50; counter++) //Don't got more than 255
+	{
+		if (LL_GPIO_IsInputPinSet(BNO085_INT_PORT, BNO085_INT_PIN) == 0)
+		{
+			if(debug>=2)
+				print_to_console("\nData available\n",16);
+			return (1);
+		}
+		if (debug>=3)
+		{
+			sprintf(buffer_debug,"\nSPI Wait %ld\n", counter);
+			print_to_console(buffer_debug,strlen(buffer_debug));
+		}
+	}
+	if(debug>=2)
+		print_to_console("\nData not available\n",20);
+	return (0);
+}
+
+uint16_t BNO085_read_response(void)
+{
+    uint8_t incoming;
+	char buffer_debug[100];
+    for (u_int16_t i = 0; i < MAX_PACKET_SIZE; i++) // on nettoie le buffer de reception
+        shtpData[i]=0;
+	if (LL_GPIO_IsInputPinSet(BNO085_INT_PORT, BNO085_INT_PIN) == 1)
+    {
+        // un truc chiant s'est passé imprime un truc sur la console neuille
+        return (0); //Data is not available
+    }
+	CHIP_SELECT(BNO085);
+	//Get the first four bytes, aka the packet header
+	uint8_t packetLSB = BNO085_SPI_bus_read_write_8(0);
+	uint8_t packetMSB = BNO085_SPI_bus_read_write_8(0);
+	uint8_t channelNumber = BNO085_SPI_bus_read_write_8(0);
+	uint8_t sequenceNumber = BNO085_SPI_bus_read_write_8(0); //Not sure if we need to store this or not
+    shtpHeader[0]=packetLSB;
+    shtpHeader[1]=packetMSB;
+    shtpHeader[2]=channelNumber;
+    shtpHeader[3]=sequenceNumber;
+	//Calculate the number of data bytes in this packet
+	receivedDataLength = ((uint16_t)packetMSB << 8 | packetLSB);
+	receivedDataLength &= 0x7fff; //Clear the MSbit.
+	//This bit indicates if this package is a continuation of the last. Ignore it for now.
+	//TODO catch this as an error and exit
+	if (receivedDataLength == 0)
+	{
+		//Packet is empty reponse vide imprime un truc sur la console la aussi neuille
+		return (0); //All done
+	}
+    receivedDataLength -= 4; //Remove the header bytes from the data count
+	if (debug>=2)
+	{
+		sprintf(buffer_debug,"length: %d\n", receivedDataLength);
+		print_to_console(buffer_debug,strlen(buffer_debug));
+        sprintf(buffer_debug,"%d %d %d %d ",packetLSB,packetMSB,channelNumber,sequenceNumber );
+		print_to_console(buffer_debug,strlen(buffer_debug));
+	}
+
+	for (uint16_t dataSpot = 0; dataSpot < receivedDataLength; dataSpot++) //Read incoming data into the shtpData array
+	{
+		incoming = BNO085_SPI_bus_read_write_8(0xFF);
+		if (debug>=3)
+		{
+			sprintf(buffer_debug,"%d ", incoming);
+			print_to_console(buffer_debug,strlen(buffer_debug));
+		}
+		if (dataSpot < MAX_PACKET_SIZE)	//BNO085 can respond with upto 270 bytes, avoid overflow
+			shtpData[dataSpot] = incoming; //Store data into the shtpData array
+	}
+	if(debug>=2)
+		print_to_console("\n",1);
+	CHIP_DESELECT(BNO085); //Release BNO085
+	return receivedDataLength; //We're done!
+}
+
+uint8_t BNO085_check() 
+{
+    uint8_t whoami = 0;
+    //on select, on transmet, on deselect on attend int, on reselect on lis et on deselect
+    // Lecture du registre WHO_AM_I
+    CHIP_SELECT(BNO085);
+    while (!LL_SPI_IsActiveFlag_TXE(BNO085_SPI_CHANNEL));
+    LL_SPI_TransmitData8(BNO085_SPI_CHANNEL,0xF9); // Commande spécifique au WHO_AM_I
+    CHIP_DESELECT(BNO085);
+    BNO085_wait_response();
+    CHIP_SELECT(BNO085);
+    while (!LL_SPI_IsActiveFlag_RXNE(BNO085_SPI_CHANNEL));
+    whoami = LL_SPI_ReceiveData8(BNO085_SPI_CHANNEL); // Lecture de la réponse
+    CHIP_DESELECT(BNO085);
+    return whoami;
+}
+
+void BNO085_Set_Feature(uint8_t feature_id, uint32_t interval_us, uint8_t specific_config)
+{
+    uint8_t cmd[20] = 
+    {
+        0x14, 0x00,              // Longueur totale (20 octets)
+        0x02,                    // Canal (Input/Output)
+        0x00,                    // Numéro de séquence (incrémenté si nécessaire)
+        0xFD,                    // Command ID (Set Feature Command)
+        feature_id, 0x00,        // Feature Report ID
+        (uint8_t)(interval_us & 0xFF),
+        (uint8_t)((interval_us >> 8) & 0xFF),
+        (uint8_t)((interval_us >> 16) & 0xFF),
+        (uint8_t)((interval_us >> 24) & 0xFF), // Intervalle en microsecondes
+        specific_config, 0x00, 0x00, 0x00,    // Paramètres spécifiques (par défaut ici)
+        0x00, 0x00, 0x00, 0x00                // Remplissage
+    };
+
+    // Vérification si le BNO085 est prêt
+    if (!BNO085_wait_response()) {
+        print_to_console("⚠️ BNO085 pas prêt, annulation de Set Feature\n", 45);
+        return;
+    }
+
+    // Envoi de la commande
+    CHIP_SELECT(BNO085);
+    for (uint8_t i = 0; i < sizeof(cmd); i++) {
+        BNO085_SPI_bus_read_write_8(cmd[i]);
+    }
+    CHIP_DESELECT(BNO085);
+
+    // Attendre une réponse du BNO085 pour confirmer la prise en compte
+    if (!BNO085_wait_response()) {
+        print_to_console("⚠️ Set Feature: Pas de réponse du BNO085\n", 42);
+        return;
+    }
+
+    // Lire la réponse pour voir si le capteur a bien accepté la commande
+    if (BNO085_read_response() == 0) {
+        print_to_console("⚠️ Set Feature: Réponse vide\n", 28);
+        return;
+    }
+
+    print_to_console("✅ Capteur configuré avec succès\n", 35);
+}
+
+// Fonction pour envoyer une requête et récupérer les capteurs activés
+void BNO085_Get_Active_Sensors() 
+{
+    if (!BNO085_wait_response()) {
+        print_to_console("BNO085 pas prêt, annulation de la requête.\n", 44);
+        return;
+    }
+
+    uint8_t shtp_command[] = { SHTP_REPORT_GET_FEATURE, 0x00 };
+
+    CHIP_SELECT(BNO085);
+    for (uint8_t i = 0; i < sizeof(shtp_command); i++) {
+        BNO085_SPI_bus_read_write_8(shtp_command[i]);
+    }
+    CHIP_DESELECT(BNO085);
+
+    if (!BNO085_wait_response()) {
+        print_to_console("⚠️ Pas de réponse après la requête.\n", 34);
+        return;
+    }
+
+    if (BNO085_read_response() == 0) {
+        print_to_console("⚠️ Réponse vide, capteur inactif ?\n", 32);
+        return;
+    }
+
+    print_to_console("📡 Capteurs activés et leur fréquence :\n", 37);
+    char buffer[100];
+
+    for (int i = 0; i < receivedDataLength; i += 16) 
+    {
+        uint8_t sensor_id = shtpData[i + 1];
+        uint32_t report_interval = 
+            (shtpData[i + 5] | (shtpData[i + 6] << 8) | 
+             (shtpData[i + 7] << 16) | (shtpData[i + 8] << 24));
+
+        if (sensor_id == 0xFF) break;
+
+        snprintf(buffer, sizeof(buffer), "Capteur ID: 0x%02X - Fréquence: %.2f Hz\n", 
+                 sensor_id, 1000000.0 / report_interval);
+        print_to_console(buffer, strlen(buffer));
+    }
+}
+
+void IMU_Init()
+{
+	IMU_SPIBus_init();
+	if(debug)
+		print_to_console("\nChecking BNO085\n",17);
+	CHIP_DESELECT(BNO085);
+	RESET_LOW();	//Reset BNO085
+	LL_mDelay(10);	//Min length not specified in datasheet?
+	RESET_HIGH();	//Bring out of reset
+    LL_mDelay(500);	//Min length not specified in datasheet?
+    /*At system startup, the hub must send its full advertisement message (see 5.2 and 5.3) to the
+	host. It must not send any other data until this step is complete.
+	When BNO085 first boots it broadcasts big startup packet
+	Read it and dump it*/
+	BNO085_wait_response(); //Wait until INT pin goes low.
+    BNO085_read_response();
+    //The BNO080 will then transmit an unsolicited Initialize Response (see 6.4.5.2)
+	//Read it and dump it
+
+    char uartBuffer[256];
+
+    char *sensorNames[] = 
+    {
+        "Unknown",                              // ID 0 | 0x00 (inexistant)
+        "Accelerometer",                        // ID 1 | 0x01
+        "Gyroscope Calibrated",                 // ID 2 | 0x02
+        "Magnetometer Field Calibrated",        // ID 3 | 0x03
+        "Linear Acceleration",                  // ID 4 | 0x04
+        "Rotation Vector",                      // ID 5 | 0x05
+        "Gravity",                              // ID 6 | 0x06
+        "Gyroscope Uncalibrated",               // ID 7 | 0x07
+        "Game Rotation Vector",                 // ID 8 | 0x08
+        "Geomagnetic Rotation Vector",          // ID 9 | 0x09
+        "Pressure",                             // ID 10 | 0x0A
+        "Ambient Light",                        // ID 11 | 0x0B
+        "Humidity",                             // ID 12 | 0x0C
+        "Proximity",                            // ID 13 | 0x0D
+        "Temperature",                          // ID 14 | 0x0E
+        "Magnetic Field Uncalibrated",          // ID 15 | 0x0F
+        "Tap Detector",                         // ID 16 | 0x10
+        "Step Counter",                         // ID 17 | 0x11
+        "Significant Motion",                   // ID 18 | 0x12
+        "Stability Classifier",                 // ID 19 | 0x13
+        "Raw Accelerometer",                    // ID 20 | 0x14
+        "Raw Gyroscope",                        // ID 21 | 0x15
+        "Raw Magnetometer",                     // ID 22 | 0x16
+        "Reserved",                             // ID 23 | 0x17
+        "Step Detector",                        // ID 24 | 0x18
+        "Shake Detector",                       // ID 25 | 0x19
+        "Flip Detector",                        // ID 26 | 0x1A
+        "Pickup Detector",                      // ID 27 | 0x1B
+        "Stability Detector",                   // ID 28 | 0x1C
+        "Unknown",                              // ID 29 | 0x1D (inexistant)
+        "Personal Activity Classifier",         // ID 30 | 0x1E
+        "Sleep Detector",                       // ID 31 | 0x1F
+        "Tilt Detector",                        // ID 32 | 0x20
+        "Pocket Detector",                      // ID 33 | 0x21
+        "Circle Detector",                      // ID 34 | 0x22
+        "Heart Rate Monitor",                   // ID 35 | 0x23
+        "Unknown",                              // ID 36 | 0x24 (inexistant)
+        "Unknown",                              // ID 37 | 0x25 (inexistant)
+        "Unknown",                              // ID 38 | 0x26 (inexistant)
+        "Unknown",                              // ID 39 | 0x27 (inexistant)
+        "ARVR-Stabilized Rotation Vector",      // ID 40 | 0x28
+        "ARVR-Stabilized Game Rotation Vector", // ID 41 | 0x29
+        "Gyro-Integrated Rotation Vector",      // ID 42 | 0x2A
+        "Motion Request",                       // ID 43 | 0x2B
+        "Optical Flow",                         // ID 44 | 0x2C
+        "Dead Reckoning Pose"                   // ID 45 | 0x2D
+    };
+
+    // 1. Décoder la version du firmware
+    snprintf(uartBuffer, sizeof(uartBuffer), "Firmware Version : %c.%c.%c\n",
+             shtpData[13-4], shtpData[15-4], shtpData[17-4]);
+    print_to_console(uartBuffer,strlen(uartBuffer));
+
+    // 2. Décoder les capteurs activés
+    print_to_console("Capteurs activés :\n",strlen("Capteurs activés :\n"));
+    for (int i = 19; i <= 34; i += 4) 
+    {
+        uint8_t sensorID = shtpData[i-4];
+        uint8_t frequency = shtpData[i+1-4];
+        print_to_console(sensorNames[sensorID],strlen(sensorNames[sensorID]));
+        snprintf(uartBuffer, sizeof(uartBuffer), " ID %u, Frequence : %u Hz\n",
+                 sensorID, frequency);
+        print_to_console(uartBuffer,strlen(uartBuffer));
+    }
+
+    // 3. Décoder les noms des capteurs ASCII
+    snprintf(uartBuffer, sizeof(uartBuffer),
+             "- Protocole : %.*s\n- Control : %.*s\n- Executable : %.*s\n"
+             "- Sensor Hub : %.*s\n- Input Normal : %.*s\n- Input Wake : %.*s\n"
+             "- Input Gyro Rv : %.*s\n",
+             4, &shtpData[33], 7, &shtpData[43], 10, &shtpData[59],
+             10, &shtpData[90], 11, &shtpData[118], 9, &shtpData[135], 11, &shtpData[150]);
+    print_to_console(uartBuffer,strlen(uartBuffer));
+
+    // 4. Décoder les paramètres avancés
+    print_to_console("Paramètres avancés :\n",strlen("Paramètres avancés :\n"));
+    for (int i = 180; i < 190; i += 2) 
+    {
+        snprintf(uartBuffer, sizeof(uartBuffer), "- Capteur %u : %u Hz\n",
+                 shtpData[i], shtpData[i + 1]);
+        print_to_console(uartBuffer,strlen(uartBuffer));
+    }
+
+    LL_mDelay(50);
+    BNO085_wait_response();  //Wait for assertion of INT before reading Init response
+	BNO085_read_response();
+    LL_mDelay(50);
+    BNO085_wait_response();  //Wait for assertion of INT before reading Init response
+	BNO085_read_response();
+
+}

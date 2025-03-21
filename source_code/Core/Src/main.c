@@ -30,6 +30,7 @@
 #include "control.h"
 #include "onboard_led.h"
 #include "imu.h"
+// #include "BNO085_driver.h"
 #include "quaternion.h"
 #include "stdio.h"
 /* USER CODE END Includes */
@@ -74,10 +75,10 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-  debug = true;
-  char debug_buffer[100];
-  float q[4];
-	float quatRadianAccuracy;
+  debug = 3;
+  // char debug_buffer[100];
+  // float q[4];
+	// float quatRadianAccuracy;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -114,8 +115,13 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   ESC_init();
-  BNO080_Calibration();
-  // LL_mDelay(500);
+  LL_mDelay(500);
+  
+  IMU_Init();
+  LL_mDelay(500);
+  
+
+
   // start_remote_routine();
   // start_control_loop();
  
@@ -128,18 +134,18 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    if(BNO080_dataAvailable() == 1)
-	  {
-		  q[0] = BNO080_getQuatI();
-		  q[1] = BNO080_getQuatJ();
-		  q[2] = BNO080_getQuatK();
-		  q[3] = BNO080_getQuatReal();
-		  quatRadianAccuracy = BNO080_getQuatRadianAccuracy();
+    // if(BNO080_dataAvailable() == 1)
+	  // {
+		//   q[0] = BNO080_getQuatI();
+		//   q[1] = BNO080_getQuatJ();
+		//   q[2] = BNO080_getQuatK();
+		//   q[3] = BNO080_getQuatReal();
+		//   quatRadianAccuracy = BNO080_getQuatRadianAccuracy();
 
-		  Quaternion_Update(&q[0]);
-      sprintf(debug_buffer,"%.2f\t%.2f\t%.2f\n", BNO080_Roll, BNO080_Pitch, BNO080_Yaw);
-      print_to_console(debug_buffer,strlen(debug_buffer));
-	  }
+		//   Quaternion_Update(&q[0]);
+    //   sprintf(debug_buffer,"%.2f\t%.2f\t%.2f\n", BNO080_Roll, BNO080_Pitch, BNO080_Yaw);
+    //   print_to_console(debug_buffer,strlen(debug_buffer));
+	  // }
   }
   /* USER CODE END 3 */
 }

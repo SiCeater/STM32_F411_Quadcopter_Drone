@@ -1,0 +1,16 @@
+
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Flash DFU",
+            "type": "shell",
+            "command": "${workspaceFolder}/flash_DFU.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
+

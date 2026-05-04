@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2024 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -75,12 +75,22 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define onboard_led_Pin LL_GPIO_PIN_13
 #define onboard_led_GPIO_Port GPIOC
-#define SPI1_CS_Pin LL_GPIO_PIN_4
-#define SPI1_CS_GPIO_Port GPIOA
-#define SPI1_RST_Pin LL_GPIO_PIN_0
-#define SPI1_RST_GPIO_Port GPIOB
-#define SPI1_INT_Pin LL_GPIO_PIN_1
-#define SPI1_INT_GPIO_Port GPIOB
+#define BNO085_SPI_CS_PIN_Pin LL_GPIO_PIN_4
+#define BNO085_SPI_CS_PIN_GPIO_Port GPIOA
+#define BNO085_SPI_SCLK_PIN_Pin LL_GPIO_PIN_5
+#define BNO085_SPI_SCLK_PIN_GPIO_Port GPIOA
+#define BNO085_SPI_MISO_PIN_Pin LL_GPIO_PIN_6
+#define BNO085_SPI_MISO_PIN_GPIO_Port GPIOA
+#define BNO085_SPI_MOSI_PIN_Pin LL_GPIO_PIN_7
+#define BNO085_SPI_MOSI_PIN_GPIO_Port GPIOA
+#define BNO085_RST_PIN_Pin LL_GPIO_PIN_0
+#define BNO085_RST_PIN_GPIO_Port GPIOB
+#define BNO085_INT_PIN_Pin LL_GPIO_PIN_1
+#define BNO085_INT_PIN_GPIO_Port GPIOB
+#define BNO085_PS0_WAKE_PIN_Pin LL_GPIO_PIN_2
+#define BNO085_PS0_WAKE_PIN_GPIO_Port GPIOB
+#define MPU9250_SPI_SCLK_PIN_Pin LL_GPIO_PIN_10
+#define MPU9250_SPI_SCLK_PIN_GPIO_Port GPIOB
 #ifndef NVIC_PRIORITYGROUP_0
 #define NVIC_PRIORITYGROUP_0         ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority,
                                                                  4 bits for subpriority */

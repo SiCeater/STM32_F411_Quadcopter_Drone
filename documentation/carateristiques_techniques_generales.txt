@@ -1,0 +1,234 @@
+PRÉAMBULE (régulation et concept de commande)
+
+Le but d'un drone quad est d'avoir une assiette la plus droite (perpendiculaire au vecteur gravité) ou en tout cas régulée dans un angle voulu, et dans un second temps s'il n'est pas destiné a une utilisation FPV, de maintenir sa position dans l'espace. Malheureusement assurer parfaitement une assiette (ce qui est déjà assez complexe) n'assure pas une dérivée de position nulle ce du aux perturbations et incertitudes (ex : vent). Pour maintenir une assiette et position parfaite, 3 types de capteurs sont utiles ;
+ -> IMU (centrale inertielle)
+ -> Baromètre
+ -> Optical flow sensor (capteur optique de mouvement)
+Un seul est réellement indispensable pour le fonctionnement d'un drone ; l'IMU car seule la gestion de l'assiette du drone est indispensable a son maintien en vol, les autres capteurs/régulations ne servent qu'a limiter les dérives de positions.
+
+Pour maintenir une assiette il faut déjà pouvoir la mesurer, ici apparait le problème principal des IMU, elles ne peuvent mesurer que deux types de grandeurs, les vitesses angulaires autour des trois axes du plan et les accélérations linéaires suivant les trois axes du plan, respectivement gyroscope et accéléromètre. On peut intégrer les vitesses angulaires mesurés pour trouver les positions angulaires, problème : lors de l'intégration une dérive survient dans le résultat (apparition de la constante C d'intégration) la mesure dérive et n'est plus exploitable au bout de quelques secondes. De l'autre coté on peut utiliser l'accéléromètre trois axes et la gravité pour retrouver l'orientation du drone dans l'espace grâce aux angles d'Euler par le calcul de l'orientation de la base du repère grâce a l'influence du vecteur d'accélération G (gravité terrestre) sur les accéléromètres des trois axes, problème : bien que le résultat soit absolu et sans dérive, plus l'accéléromètre bouge pendant le calcul moins le résultat est exploitable (vibrations, translations, accélération des manoeuvres,...).
+
+Ces deux capteurs sont complémentaires, la solution est de "fusionner" leurs donnés pour obtenir l'orientation dans l'espace du drone en temps réel en temps réel, la est toute la complexité. Cette fusion peut se faire par plusieurs méthodes et algorithmes bien connus :
+
+Filtre		Complexité	CPU		Robustesse	Biais gyro	Usage drone
+Complémentaire	*		*		**		N		Basique
+Mahony		**		**		****		Y		Idéal
+Madgwick	**		*		***		N		IMU cheap
+EKF		****		****		****		Y		Navigation
+IEKF		*****		*****		*****		Y		Recherche
+EKF 15 états	*****		*****		*****		Y		Autonomie
+
+Ici toute cette complexité est gérée par le capteur BNO085 qui effectue cette fusion en interne. Cependant la présence d'un autre capteur type IMU pour gagner en stabilité.
+
+-> Schémas blocs et explication du processus 
+
+              ┌────────────────────┐
+              │   Télécommande RC  │
+              │ (roll/pitch/yaw/T) │
+              └─────────┬──────────┘
+                        │
+                        ▼
+              ┌────────────────────┐
+              │  Mapping / Scaling │
+              │  Deadzone / Expo   │
+              └─────────┬──────────┘
+                        │
+         ┌──────────────┴──────────────┐
+         │                             │
+         ▼                             ▼
+┌────────────────────┐       ┌────────────────────┐
+│  ATTITUDE SETPOINT │       │   RATE SETPOINT    │
+│  (φ*, θ*, ψ*)      │       │  (p*, q*, r*)      │
+└─────────┬──────────┘       └─────────┬──────────┘
+          │                            │
+          ▼                            │
+┌────────────────────┐                 │
+│  ATTITUDE PID      │  (outer loop)   │
+│  φ,θ,ψ → p*,q*,r*  │                 │
+└─────────┬──────────┘                 │
+          └──────────────┬─────────────┘
+                         ▼
+                ┌────────────────────┐
+                │     RATE PID       │  (inner loop)
+                │   p,q,r → torques  │
+                └─────────┬──────────┘
+                          ▼
+                ┌────────────────────┐
+                │       MIXER        │
+                │ torques + thrust   │
+                └─────────┬──────────┘
+                          ▼
+                ┌────────────────────┐
+                │  ESC / MOTEURS     │
+                └────────────────────┘
+
+      ┌──────────────────────────┐
+      │        Télécommande      │
+      │  Roll Pitch Yaw Throttle │
+      └────────────┬─────────────┘
+                   │
+                   ▼
+        ┌──────────────────────┐
+        │ Mapping RC → Consigne│
+        │ (deadzone, expo, LPF)│
+        └────────────┬─────────┘
+                     │
+                     ▼
+        ┌──────────────────────┐
+        │  ATTITUDE PID (slow) │◄─────────────┐
+        │    (Roll / Pitch)    │              │
+        └────────────┬─────────┘              │
+                     │                        │
+         Consigne ω  │                        │
+                     ▼                        │
+        ┌──────────────────────┐              │
+        │     RATE PID (fast)  │◄───────┐     │
+        │      (p, q, r)       │        │     │
+        └────────────┬─────────┘        │     │
+                     │                  │     │
+                     ▼                  │     │
+              ┌────────────┐            │     │
+              │   MIXER    │            │     │
+              │ (Quad X)   │            │     │
+              └─────┬──────┘            │     │
+                    ▼                   │     │
+               ┌──────────┐             │     │
+               │  ESC /   │             │     │
+               │ MOTEURS  │             │     │
+               └──────────┘             │     │
+                                        │     │
+     ┌──────────────────────────┐       │     │
+     │   MPU9250 Gyro brut      │───────┘     │
+     │  (LPF + calibration)     │             │
+     └──────────────────────────┘             │
+                                              │
+     ┌──────────────────────────┐             │
+     │ BNO085 Game Rotation Vec │─────────────┘
+     │ (quat / Euler filtrés)   │
+     └──────────────────────────┘
+
+
+
+BNO085 (Quaternion q)
+          │
+          ▼
+┌────────────────────┐
+│ Quaternion → Euler │
+│ φ, θ, ψ            │
+└─────────┬──────────┘
+          ▼
+┌────────────────────┐
+│  LPF attitude      │  fc ≈ 10–30 Hz
+│  (anti jitter)     │
+└─────────┬──────────┘
+          ▼
+┌────────────────────┐
+│  ATTITUDE PID      │
+│  e = angle*−angle  │
+│  (souvent P ou PI) │
+└─────────┬──────────┘
+          ▼
+┌────────────────────┐
+│  RATE SETPOINT     │
+│  p*, q*, r*        │
+└────────────────────┘
+
+
+
+      RC Input
+          │
+          ▼
+┌────────────────────┐
+│  Normalisation     │  [-1 ; +1]
+│  Deadzone          │
+│  Expo              │
+└─────────┬──────────┘
+          │
+   ┌──────┴─────────┐
+   ▼                ▼
+Attitude Setpoint   Rate Setpoint
+φ*,θ*               r*
+
+
+
+       Front
+         ↑
+    M1       M2
+      \     /
+       \   /
+       /   \
+      /     \
+    M4       M3
+
+M1 = T + τx + τy − τz
+M2 = T − τx + τy + τz
+M3 = T − τx − τy − τz
+M4 = T + τx − τy + τz
+
+
+
+
+-> Télécommande :
+Performance accrue (FPV/réactivité) : 100 Hz à 250 Hz si votre module RF et microcontrôleur le permettent.
+
+Facteurs spécifiques à un F330 :
+
+1 - Taille et réactivité :
+Le F330, avec des hélices de 6" à 8", est conçu pour être agile et réactif.
+Cela permet d’exploiter des fréquences PID élevées sans trop d’oscillations dues à l'inertie.
+
+-> ESC :
+- PWM classique : Limite à ~490 Hz.
+- OneShot125/OneShot42 : Fréquences PID entre 250 Hz et 500 Hz recommandées.
+- DShot300/DShot600 : Fréquences PID entre 500 Hz et 1 kHz possibles.
+
+Fréquences typiques selon les protocoles ESC :
+
+Protocole ESC		Fréquence PID recommandée	Fréquence d'actualisation ESC
+PWM classique		50-200 Hz			~490 Hz
+OneShot125		250-500 Hz			~8 kHz
+OneShot42		500 Hz - 1 kHz			~24 kHz
+DShot150/DShot300	500 Hz - 1 kHz			150 kHz - 300 kHz
+DShot600		1 kHz - 2 kHz			600 kHz
+
+Dimensionnement des ESC :
+Durées des impulsions pour OneShot :
+
+OneShot125, Durée des impulsions :
+125 µs → Minimum (commande à 0 % de puissance).
+250 µs → Maximum (commande à 100 % de puissance).
+Fréquence maximale : 8 kHz (1/125 µs).
+
+OneShot42 :
+Durée des impulsions :
+42 µs → Minimum (commande à 0 % de puissance).
+84 µs → Maximum (commande à 100 % de puissance).
+Fréquence maximale : 24 kHz (1/42 µs).
+
+Différences entre OneShot et PWM classique :
+
+Caractéristique			PWM Classique		OneShot125	OneShot42
+Durée des impulsions		1000-2000 µs		125-250 µs	42-84 µs
+Fréquence maximale		~490 Hz			~8 kHz		~24 kHz
+Latence				Plus élevée		Réduite		Très faible
+Synchronisation PID loop	Non synchronisé		Oui		Oui
+
+Conclusion : Oneshot125 largement suffisant car actualisation synchronisée avec la boucle PID (1kHz)OneShot125, 
+125 µs → Minimum (commande à 0 % de puissance)    → 2500
+250 µs → Maximum (commande à 100 % de puissance)  → 5000
+
+PSC :   5
+CPARR : 20000
+-> F_cpu/100000 = 1000 = F_pid -> ESC est sync. (PID)
+
+Calibration : à faire une fois a partir du timer 1 (ESC) et non de la télécommande directement
+
+
+-> IMU (BNO085 et MPU9250)
+
+
+- Le gyroscope brut doit être configuré à une fréquence d’échantillonnage d’au moins 2 kHz.
+- Utilisez des filtres (low-pass) pour limiter le bruit si la fréquence PID dépasse 500 Hz.
+- Un STM32F4 (comme un F411 ou F405) peut gérer confortablement des fréquences PID jusqu'à 1 kHz.
+
+

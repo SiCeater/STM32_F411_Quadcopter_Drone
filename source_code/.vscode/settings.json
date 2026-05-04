@@ -1,23 +1,15 @@
 {
-    "files.associations": {
-        "onboard_led.h": "c",
-        "stm32f4xx_ll_gpio.h": "c",
-        "stm32f4xx.h": "c",
-        "stm32f4xx_hal.h": "c",
-        "stm32_assert.h": "c",
-        "stm32f4xx_ll_adc.h": "c",
-        "stm32f4xx_ll_bus.h": "c",
-        "stm32f4xx_ll_rcc.h": "c",
-        "stm32f4xx_ll_pwr.h": "c",
-        "stm32f4xx_ll_cortex.h": "c",
-        "stm32f4xx_ll_spi.h": "c",
-        "stm32f4xx_ll_tim.h": "c",
-        "global.h": "c",
-        "gpio.h": "c",
-        "main.h": "c",
-        "stm32f4xx_ll_usart.h": "c",
-        "security.h": "c",
-        "control.h": "c",
-        "quaternion.h": "c"
-    }
+    "cmake.cmakePath": "cube-cmake",
+    "cmake.configureArgs": [
+        "-DCMAKE_COMMAND=cube-cmake"
+    ],
+    "cmake.preferredGenerators": [
+        "Ninja"
+    ],
+    "stm32cube-ide-clangd.path": "cube",
+    "stm32cube-ide-clangd.arguments": [
+        "starm-clangd",
+        "--query-driver=${env:CUBE_BUNDLE_PATH}/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-gcc",
+        "--query-driver=${env:CUBE_BUNDLE_PATH}/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-g++"
+    ]
 }

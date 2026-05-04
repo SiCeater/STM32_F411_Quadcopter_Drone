@@ -22,7 +22,7 @@
 
 ## À propos
 
-Ce projet implémente un système de contrôle de vol pour un drone quadcopter utilisant le microcontrôleur **STM32F411** (sur bord générique type blackpill ). Le firmware gère la stabilisation, le contrôle moteur et la communication basique avec un protocole UART simple en utilisant un couple de modules TX/RX HC05.
+Ce projet implémente un système de contrôle de vol pour un drone quadcopter utilisant le microcontrôleur **STM32F411** (sur bord générique type blackpill ). Le firmware gère la stabilisation, le contrôle moteur et la communication basique avec un protocole UART simple en utilisant un couple de modules TX/RX HC-05.
 
 ### Points clés
 - Contrôle temps réel avec STM32F411 (100 MHz)
@@ -44,14 +44,14 @@ Ce projet implémente un système de contrôle de vol pour un drone quadcopter u
 
 ### Communication
 - **Protocole radio ** pour télécommande
-- **Configuration** via port USB (OTG/DFU) ou STLINK
+- **Configuration** via port USB (OTG/DFU) ou ST-Link V2/V3
 - **Debug** en temps réel
 
 ### Sécurité
 - Désarmement d'urgence en cas de perte liaison
 - Limites de débattement configurables
 
-## 🔧 Architecture matérielle
+## Architecture matérielle
 
 ### Composants principaux
 
@@ -76,7 +76,7 @@ STM32F411
 ## Prérequis
 
 ### Logiciels requis
-- **VSCode et extension STM32CubeIDE** ou **Keil MDK**
+- **VSCode et extension STM32CubeIDE**
 - **STM32CubeMX** pour la configuration des périphériques
 - **STM32CubeProgrammer (optionnel)** pour le flash
 - **Git** pour le versioning
@@ -97,26 +97,24 @@ cd STM32_F411_Quadcopter_Drone
 
 ### 2. Ouvrir le projet
 ```bash
-# Avec STM32CubeIDE
-# File → Open Projects from File System → Sélectionner le dossier source_code/
+# Avec VSCode
+# File → Open folder → Sélectionner le dossier source_code/
 ```
 
 ### 3. Compiler le firmware
 ```bash
-# Dans STM32CubeIDE
-# Project → Build All (Ctrl+B)
+# Dans VSCode, la petite roue crantée en bas a gauche
 ```
 
 ### 4. Flasher le microcontrôleur
 ```bash
 # Connecter le ST-Link au STM32F411
-# Run → Debug (F11) ou Run (Ctrl+F11) 
-# Ou utiliser le script "flash.sh" pour flasher en USB/DFU si pas de ST-Link
+# Run → Debug (F11) ou Run (Ctrl+F11)
+# Ou utiliser le script "flash_DFU.sh" (si pas de ST-Link), pour flasher en USB/DFU, enfoncer le bouton "BOOT" avant de brancher le cable USB pour mettre le F411 en mode DFU puis lancer le script
 ```
 
 ### 5. Vérification
-- LED de statut doit clignoter
-- Connexion série (configurer la bonne vitesse en bps, voir le fichier .ioc ou uart.c)
+- Connexion série (configurer la bonne vitesse en bps, voir le fichier .ioc ou uart.c et ne pas oublier d'activer le debug : debug = 1 dans global.c)
 - Vérifier les messages de boot
 
 ## Structure du projet

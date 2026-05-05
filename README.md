@@ -39,6 +39,7 @@ Ce projet implémente un système de contrôle de vol pour un drone quadcopter u
 
 ### Capteur
 - **IMU** (Inertial Measurement Unit) : accéléromètre + gyroscope + magnétomètre
+  la fusion accel/gyro/mag est gérée en interne paar le BNO085 avec un algoritme avancé (type IEKF) les quaterions sont directement calculés et disponnibles dans des registres.
 
 ### Communication
 - **Protocole radio ** pour télécommande

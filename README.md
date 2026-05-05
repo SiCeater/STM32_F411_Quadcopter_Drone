@@ -31,16 +31,14 @@ Ce projet implémente un système de contrôle de vol pour un drone quadcopter u
 
 ## Fonctionnalités
 
-### Contrôle de vol
-- **Stabilisation multi-axes** : Roll, Pitch, Yaw
+### Contrôle de vol (pas encore implementé)
+- **Stabilisation multi-axes** : Roll, Pitch, Yaw 
 - **Contrôleurs PID** tunables pour chaque axe
 - **Modes de vol** : Acro, Angle, Horizon
 - **Failsafe** et protection contre les crashs
 
-### Capteurs
-- **IMU** (Inertial Measurement Unit) : accéléromètre + gyroscope
-- **Magnétomètre** pour le cap (optionnel)
-- **Filtre Mahony** pour la fusion de données (pas encore implémenté)
+### Capteur
+- **IMU** (Inertial Measurement Unit) : accéléromètre + gyroscope + magnétomètre
 
 ### Communication
 - **Protocole radio ** pour télécommande
@@ -58,7 +56,7 @@ Ce projet implémente un système de contrôle de vol pour un drone quadcopter u
 | Composant | Modèle recommandé | Fonction |
 |-----------|-------------------|----------|
 | Microcontrôleur | STM32F411CEU6 | Cœur du système |
-| IMU | MPU6050 / ICM20602 | Mesure d'attitude |
+| IMU | BNO085 | Mesure d'attitude |
 | ESC | 4x BLHeli_S | Contrôle moteurs |
 | Moteurs | 4x Brushless 2212-2300KV | Propulsion |
 | Récepteur | HC-05 | Réception radio |
@@ -67,7 +65,7 @@ Ce projet implémente un système de contrôle de vol pour un drone quadcopter u
 ### Schéma de connexion
 ```raw
 STM32F411
-    ├── SPI1 → IMU (MPU6050)
+    ├── SPI1 → IMU (BNO085)
     ├── USART1 → Récepteur radio
     ├── USART2 → Debug/Config
     ├── TIM1 → PWM Moteur 1-4
@@ -150,19 +148,6 @@ STM32_F411_Quadcopter_Drone/
 ```
 
 ## Développement
-
-### Architecture logicielle
-
-Le firmware est organisé en modules :
-
-```raw
-main.c
-  ├── init_system()      → Initialisation hardware
-  ├── sensor_loop()      → Lecture capteurs (1kHz)
-  ├── control_loop()     → Calcul PID (500Hz)
-  ├── motor_update()     → Commande ESC (400Hz)
-```
-
 
 ### Debug
 

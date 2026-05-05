@@ -1,6 +1,6 @@
 # STM32 F411 Quadcopter Drone
 
-> Projet de drone quadcopter basé sur le microcontrôleur STM32F411
+> Projet de drone quadcopter basé sur le microcontrôleur STM32F411 avec les drivers STM LL (Low Layer)
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-STM32F411-green.svg)](https://www.st.com/en/microcontrollers-microprocessors/stm32f411.html)
@@ -39,7 +39,7 @@ Ce projet implémente un système de contrôle de vol pour un drone quadcopter u
 
 ### Capteur
 - **IMU** (Inertial Measurement Unit) : accéléromètre + gyroscope + magnétomètre
-  la fusion accel/gyro/mag est gérée en interne paar le BNO085 avec un algoritme avancé (type IEKF) les quaterions sont directement calculés et disponnibles dans des registres.
+  la fusion accel/gyro/mag est gérée en interne par le BNO085 avec un algoritme avancé (type IEKF) les quaterions sont directement calculés et disponnibles dans des registres.
 
 ### Communication
 - **Protocole radio ** pour télécommande
@@ -59,7 +59,7 @@ Ce projet implémente un système de contrôle de vol pour un drone quadcopter u
 | Microcontrôleur | STM32F411CEU6 | Cœur du système |
 | IMU | BNO085 | Mesure d'attitude |
 | ESC | 4x BLHeli_S | Contrôle moteurs |
-| Moteurs | 4x Brushless 2212-2300KV | Propulsion |
+| Moteurs | 4x Brushless 2212-920KV | Propulsion |
 | Récepteur | HC-05 | Réception radio |
 | Batterie | LiPo 4S 3200mAh | Alimentation |
 
@@ -162,7 +162,7 @@ DEBUG_PRINT("IMU: roll=%.2f pitch=%.2f yaw=%.2f", roll, pitch, yaw);
 
 ## Contribution
 
-Les contributions sont les bienvenues ce projet n'est qu'une ébauche Pour contribuer :
+Les contributions sont les bienvenues ce projet n'est qu'une ébauche, pour contribuer :
 
 1. **Fork** le projet
 2. Créer une **branche** pour votre feature (`git checkout -b feature/AmazingFeature`)
@@ -171,6 +171,7 @@ Les contributions sont les bienvenues ce projet n'est qu'une ébauche Pour contr
 5. Ouvrir une **Pull Request**
 
 ### Guidelines
+- Utiliser uniquement les drivers matériels LL fournis par STM
 - Code en anglais, commentaires en français acceptés
 - Respecter le style de code existant
 - Tester avant de soumettre
